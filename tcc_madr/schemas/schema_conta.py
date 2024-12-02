@@ -1,10 +1,6 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 from tcc_madr.utils import sanitize_input
-
-
-class Message(BaseModel):
-    mensagem: str
 
 
 class ContaSchema(BaseModel):
@@ -21,3 +17,13 @@ class ContaPublic(BaseModel):
     id: int
     email: EmailStr
     username: str
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ContaList(BaseModel):
+    contas: list[ContaPublic]
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

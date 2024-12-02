@@ -1,8 +1,12 @@
 from http import HTTPStatus
 
+from tcc_madr.schemas.schema_conta import ContaPublic
 
-def test_conta_schema(client, create_conta_all):
-    create_conta_all(9)
+# conta post
+
+
+def test_post_conta(client, conta_all):
+    conta_all(9)
     response = client.post(
         '/conta/',
         json={
@@ -17,3 +21,121 @@ def test_conta_schema(client, create_conta_all):
         'email': 'fausto@fausto.com',
         'username': 'fausto',
     }
+
+
+def test_post_conta_email_conflict(client, conta):
+    response = client.post(
+        '/conta/',
+        json={
+            'username': 'teste',
+            'email': conta.email,
+            'senha': 'teste',
+        },
+    )
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert conta.email == 'teste1@teste.com'
+
+
+def test_post_conta_username_conflict(client, conta):
+    response = client.post(
+        '/conta/',
+        json={
+            'username': conta.username,
+            'email': 'teste@teste.com',
+            'senha': 'teste',
+        },
+    )
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert conta.username == 'teste1'
+
+
+# conta get
+
+
+def test_get_conta(client, conta, token):
+    response = client.get(
+        '/conta',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    conta_schema = ContaPublic.model_validate(conta).model_dump()
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'contas': [conta_schema]}
+
+
+# conta put
+
+
+def test_put_conta(client, conta, token):
+    response = client.put(
+        f'/conta/{conta.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': 'testusername2',
+            'email': 'teste@test2.com',
+            'senha': '123',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json() == {
+        'id': conta.id,
+        'username': 'testusername2',
+        'email': 'teste@test2.com',
+    }
+
+
+def test_put_conta_fornidden(client, other_conta, token):
+    response = client.put(
+        f'/conta/{other_conta.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'id': other_conta.id,
+            'username': 'testusername2',
+            'email': 'teste@test2.com',
+            'senha': '123',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Sem permisao para esse usuario'}
+
+
+def test_put_conta_username_conflict(client, conta, other_conta, token):
+    response = client.put(
+        f'/conta/{conta.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': other_conta.username,
+            'email': 'teste@teste.com',
+            'senha': 'teste',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {'detail': 'Username ou Email ja existe'}
+
+
+# conta delete
+
+
+def test_delete_conta_fornidden(client, other_conta, token):
+    response = client.delete(
+        f'/conta/{other_conta.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {
+        'detail': 'Sem permisao para excluir esse usuario'
+    }
+
+
+def test_delete_conta(client, conta, token):
+    response = client.delete(
+        f'/conta/{conta.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'message': 'Conta deletada com sucesso'}

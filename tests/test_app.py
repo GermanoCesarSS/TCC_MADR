@@ -7,4 +7,4 @@ def test_ola_mundo(client):
     )
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {'mensagem': 'Olá Mundo!'}
+    assert response.json() == {'message': 'Olá Mundo!'}

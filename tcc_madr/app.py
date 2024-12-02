@@ -2,13 +2,15 @@ from http import HTTPStatus
 
 from fastapi import FastAPI
 
-from tcc_madr.routers import conta
-from tcc_madr.schemas import Message
+from tcc_madr.routers import auth, conta, livro
+from tcc_madr.schemas.schema import Message
 
 app = FastAPI()
 app.include_router(conta.router)
+app.include_router(auth.router)
+app.include_router(livro.router)
 
 
 @app.get('/', status_code=HTTPStatus.OK, response_model=Message)
 def read_root():
-    return {'mensagem': 'Olá Mundo!'}
+    return {'message': 'Olá Mundo!'}

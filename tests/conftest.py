@@ -14,7 +14,7 @@ class ContaFactory(factory.Factory):
     class Meta:
         model = Conta
 
-    username = factory.Sequence(lambda n: f'teste_{n}')
+    username = factory.Sequence(lambda n: f'teste{n}')
     email = factory.LazyAttribute(lambda obj: f'{obj.username}@teste.com')
     senha = factory.LazyAttribute(lambda obj: f'{obj.username}senha')
 
@@ -26,6 +26,7 @@ def client(session):
 
     with TestClient(app) as client:
         app.dependency_overrides[get_session] = fake_session
+
         yield client
 
     app.dependency_overrides.clear()
@@ -40,14 +41,15 @@ def session():
     )
     table_registry.metadata.create_all(engine)
 
-    with Session(engine) as _session:
-        yield _session
+    with Session(engine) as session:
+        yield session
 
     table_registry.metadata.drop_all(engine)
+    ContaFactory.reset_sequence(1)
 
 
 @pytest.fixture
-def create_conta(session):
+def conta(session):
     pwd = 'teste'
     conta = ContaFactory(senha=get_password_hash(pwd))
 
@@ -61,7 +63,21 @@ def create_conta(session):
 
 
 @pytest.fixture
-def create_conta_all(session):
+def other_conta(session):
+    pwd = 'teste'
+    conta = ContaFactory(senha=get_password_hash(pwd))
+
+    session.add(conta)
+    session.commit()
+    session.refresh(conta)
+
+    conta.clean_senha = pwd  # Monkey Patch
+
+    return conta
+
+
+@pytest.fixture
+def conta_all(session):
     def _create(n: int):
         pwd = 'teste'
         contas = ContaFactory.create_batch(n, senha=get_password_hash(pwd))
@@ -70,3 +86,12 @@ def create_conta_all(session):
         session.commit()
 
     return _create
+
+
+@pytest.fixture
+def token(client, conta):
+    response = client.post(
+        '/auth/token/',
+        data={'username': conta.email, 'password': conta.clean_senha},
+    )
+    return response.json()['access_token']
