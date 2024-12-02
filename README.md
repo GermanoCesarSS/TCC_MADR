@@ -1,0 +1,1 @@
+Ferramentas usadas: Poetry, Pyenv, Sqlalchemy
