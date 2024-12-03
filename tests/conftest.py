@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from tcc_madr.app import app
 from tcc_madr.conn_database import get_session
-from tcc_madr.models import Conta, table_registry
+from tcc_madr.models import Conta, Livro, table_registry
 from tcc_madr.security import get_password_hash
 
 
@@ -17,6 +17,15 @@ class ContaFactory(factory.Factory):
     username = factory.Sequence(lambda n: f'teste{n}')
     email = factory.LazyAttribute(lambda obj: f'{obj.username}@teste.com')
     senha = factory.LazyAttribute(lambda obj: f'{obj.username}senha')
+
+
+class LivroFactory(factory.Factory):
+    class Meta:
+        model = Livro
+
+    titulo = factory.Sequence(lambda n: f'teste{n}')
+    ano = factory.Sequence(lambda n: 2000 + n)
+    romancista_id = 1
 
 
 @pytest.fixture
@@ -46,6 +55,7 @@ def session():
 
     table_registry.metadata.drop_all(engine)
     ContaFactory.reset_sequence(1)
+    LivroFactory.reset_sequence(1)
 
 
 @pytest.fixture
@@ -74,18 +84,6 @@ def other_conta(session):
     conta.clean_senha = pwd  # Monkey Patch
 
     return conta
-
-
-@pytest.fixture
-def conta_all(session):
-    def _create(n: int):
-        pwd = 'teste'
-        contas = ContaFactory.create_batch(n, senha=get_password_hash(pwd))
-
-        session.add_all(contas)
-        session.commit()
-
-    return _create
 
 
 @pytest.fixture

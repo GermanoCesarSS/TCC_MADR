@@ -1,12 +1,15 @@
 from http import HTTPStatus
 
 from tcc_madr.schemas.schema_conta import ContaPublic
+from tests.conftest import ContaFactory
 
 # conta post
 
 
-def test_post_conta(client, conta_all):
-    conta_all(9)
+def test_post_conta(session, client):
+    session.bulk_save_objects(ContaFactory.create_batch(9))
+    session.commit()
+
     response = client.post(
         '/conta/',
         json={
