@@ -23,3 +23,9 @@ class LivroPublic(BaseModel):
 
 class LivroList(BaseModel):
     contas: list[LivroPublic]
+
+
+class LivroUpdate(BaseModel):
+    titulo: str | None = None
+    ano: int | None = None
+    romancista_id: int | None = None
