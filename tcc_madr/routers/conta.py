@@ -1,21 +1,21 @@
 from http import HTTPStatus
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
-from tcc_madr.conn_database import get_session
 from tcc_madr.models import Conta
 from tcc_madr.schemas.schema import Message
-from tcc_madr.schemas.schema_conta import ContaList, ContaPublic, ContaSchema
-from tcc_madr.security import get_current_user, get_password_hash
+from tcc_madr.schemas.schema_conta import (
+    ContaList,
+    ContaPublic,
+    ContaSchema,
+    ContaUpdate,
+)
+from tcc_madr.security import get_password_hash
+from tcc_madr.utils import T_CurrentConta, T_Session
 
 router = APIRouter(prefix='/conta', tags=['conta'])
-
-T_Session = Annotated[Session, Depends(get_session)]
-T_CurrentConta = Annotated[Conta, Depends(get_current_user)]
 
 
 @router.get('/', response_model=ContaList)
@@ -66,7 +66,7 @@ def post_conta(_conta: ContaSchema, session: T_Session):
 )
 def put_conta(
     conta_id: int,
-    _conta: ContaSchema,
+    _conta: ContaUpdate,
     session: T_Session,
     current_conta: T_CurrentConta,
 ):
@@ -76,9 +76,17 @@ def put_conta(
             detail='Sem permisao para esse usuario',
         )
 
-    current_conta.username = _conta.username
-    current_conta.email = _conta.email
-    current_conta.senha = get_password_hash(_conta.senha)
+    for key, value in _conta.model_dump(exclude_unset=True).items():
+        setattr(_conta, key, value)
+
+    if _conta.username is not None:
+        current_conta.username = _conta.username
+
+    if _conta.email is not None:
+        current_conta.email = _conta.email
+
+    if _conta.senha is not None:
+        current_conta.senha = get_password_hash(_conta.senha)
 
     try:
         session.commit()

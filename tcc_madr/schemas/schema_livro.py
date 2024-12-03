@@ -22,7 +22,7 @@ class LivroPublic(BaseModel):
 
 
 class LivroList(BaseModel):
-    contas: list[LivroPublic]
+    livros: list[LivroPublic]
 
 
 class LivroUpdate(BaseModel):

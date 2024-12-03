@@ -1,12 +1,8 @@
 from http import HTTPStatus
-from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from tcc_madr.conn_database import get_session
 from tcc_madr.models import Conta
 from tcc_madr.schemas.schema_conta import Token
 from tcc_madr.security import (
@@ -14,12 +10,9 @@ from tcc_madr.security import (
     get_current_user,
     verify_password,
 )
+from tcc_madr.utils import T_OAuth2Form, T_Session
 
 router = APIRouter(prefix='/auth', tags=['auth'])
-
-
-T_Session = Annotated[Session, Depends(get_session)]
-T_OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 @router.post('/token/', response_model=Token)

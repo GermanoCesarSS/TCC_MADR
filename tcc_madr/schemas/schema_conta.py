@@ -24,6 +24,12 @@ class ContaList(BaseModel):
     contas: list[ContaPublic]
 
 
+class ContaUpdate(BaseModel):
+    username: str | None = None
+    email: EmailStr | None = None
+    senha: str | None = None
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str

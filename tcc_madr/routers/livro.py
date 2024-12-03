@@ -1,18 +1,17 @@
 from http import HTTPStatus
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from tcc_madr.conn_database import get_session
-from tcc_madr.models import Conta, Livro
+from tcc_madr.models import Livro
 from tcc_madr.schemas.schema import Message
-from tcc_madr.schemas.schema_livro import LivroPublic, LivroSchema, LivroUpdate
-from tcc_madr.security import get_current_user
-
-T_Session = Annotated[Session, Depends(get_session)]
-T_CurrentConta = Annotated[Conta, Depends(get_current_user)]
+from tcc_madr.schemas.schema_livro import (
+    LivroList,
+    LivroPublic,
+    LivroSchema,
+    LivroUpdate,
+)
+from tcc_madr.utils import T_CurrentConta, T_Session, sanitize_input
 
 router = APIRouter(prefix='/livro', tags=['livro'])
 
@@ -93,3 +92,44 @@ def livro_path(
     session.refresh(db_livro)
 
     return db_livro
+
+
+@router.get('/{livro_id}', response_model=LivroPublic)
+def livro_get(
+    session: T_Session,
+    current_conta: T_CurrentConta,
+    livro_id: int,
+):
+    db_livro = session.scalar(select(Livro).where(Livro.id == livro_id))
+    if not db_livro:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Livro nao encontrado.'
+        )
+    return db_livro
+
+
+@router.get('/', response_model=LivroList)
+def livro_get_all(
+    session: T_Session,
+    current_conta: T_CurrentConta,
+    ano: int | None = None,
+    titulo: str | None = None,
+    romancista_id: int | None = None,
+    limit: int = 20,
+    skip: int = 0,
+):
+    query = session.query(Livro)
+
+    if ano is not None:
+        query = query.filter(Livro.ano == ano)
+
+    if titulo is not None:
+        query = query.filter(Livro.titulo.contains(sanitize_input(titulo)))
+
+    if romancista_id is not None:
+        query = query.filter(Livro.romancista_id == romancista_id)
+
+    query = query.limit(limit).offset(skip)
+    db_livro = query.all()
+
+    return {'livros': db_livro}

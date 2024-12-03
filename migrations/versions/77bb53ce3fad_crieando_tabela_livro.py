@@ -22,7 +22,7 @@ def upgrade() -> None:
     op.create_table(
         'livro',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('ano', sa.String(), nullable=False),
+        sa.Column('ano', sa.Integer(), nullable=False),
         sa.Column('titulo', sa.String(), nullable=False),
         sa.Column('romancista_id', sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint('id'),

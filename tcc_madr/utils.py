@@ -1,18 +1,20 @@
 import re
+from typing import Annotated
+
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+
+from tcc_madr.conn_database import get_session
+from tcc_madr.models import Conta
+from tcc_madr.security import get_current_user
+
+T_Session = Annotated[Session, Depends(get_session)]
+T_CurrentConta = Annotated[Conta, Depends(get_current_user)]
+T_OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 def sanitize_input(input_str: str) -> str:
-    """
-    Sanitiza a string de entrada de acordo com as regras definidas:
-    - Converte para minúsculas.
-    - Remove espaços extras.
-    - Remove pontuações indesejadas.
-    Args:
-        input_str (str): A string a ser sanitizada.
-    Returns:
-        str: A string sanitizada.
-    """
-
     # Converter para minúsculas
     sanitized = input_str.lower()
 

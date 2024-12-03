@@ -69,6 +69,21 @@ def test_get_conta(client, conta, token):
 # conta put
 
 
+def test_put_conta_username(client, conta, token):
+    response = client.put(
+        f'/conta/{conta.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={'username': 'testusername2'},
+    )
+
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json() == {
+        'id': conta.id,
+        'username': 'testusername2',
+        'email': conta.email,
+    }
+
+
 def test_put_conta(client, conta, token):
     response = client.put(
         f'/conta/{conta.id}',
