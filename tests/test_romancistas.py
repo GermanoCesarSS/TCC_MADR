@@ -150,12 +150,14 @@ def test_romancistas_get_filter_nome(session, client, token):
     _romancistas1 = RomancistasFactory(nome='machado de assis')
     _romancistas2 = RomancistasFactory(nome='clarice lispector')
     _romancistas3 = RomancistasFactory(nome='josé de alencar')
+    _romancistas4 = RomancistasFactory(nome='E')
     session.add(_romancistas1)
     session.add(_romancistas2)
     session.add(_romancistas3)
+    session.add(_romancistas4)
     session.commit()
     response = client.get(
-        '/romancistas/', headers={'Authorization': f'Bearer {token}'}
+        '/romancistas/?nome=a', headers={'Authorization': f'Bearer {token}'}
     )
 
     assert response.status_code == HTTPStatus.OK

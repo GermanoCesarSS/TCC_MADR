@@ -127,7 +127,8 @@ def livro_get_all(
         query = query.filter(Livro.ano == ano)
 
     if titulo is not None:
-        query = query.filter(Livro.titulo.contains(sanitize_input(titulo)))
+        titulo = sanitize_input(titulo)
+        query = query.filter(Livro.titulo.ilike(f'%{titulo}%'))
 
     if romancista_id is not None:
         query = query.filter(Livro.romancista_id == romancista_id)

@@ -11,7 +11,7 @@ from tcc_madr.schemas.schema_romancistas import (
     RomancistasSchema,
     RomancistasUpdata,
 )
-from tcc_madr.utils import T_CurrentConta, T_Session
+from tcc_madr.utils import T_CurrentConta, T_Session, sanitize_input_up
 
 router = APIRouter(prefix='/romancistas', tags=['romancistas'])
 
@@ -133,7 +133,8 @@ def romancistas_get_all(
     query = session.query(Romancistas)
 
     if nome is not None:
-        query = query.filter(Romancistas.nome == nome)
+        nome = sanitize_input_up(nome)
+        query = query.filter(Romancistas.nome.ilike(f'%{nome}%'))
 
     query = query.limit(limit).offset(skip)
     db_romancistas = query.all()
