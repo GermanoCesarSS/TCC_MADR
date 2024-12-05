@@ -41,12 +41,12 @@ def post_conta(_conta: ContaSchema, session: T_Session):
         if db_user.username == _conta.username:
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT,
-                detail='Username ja existe',
+                detail='conta já consta no MADR',
             )
         elif db_user.email == _conta.email:
             raise HTTPException(
                 status_code=HTTPStatus.CONFLICT,
-                detail='Email ja existe',
+                detail='conta já consta no MADR',
             )
 
     db_conta = Conta(
@@ -73,7 +73,7 @@ def put_conta(
     if current_conta.id != conta_id:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN,
-            detail='Sem permisao para esse usuario',
+            detail='Não autorizado',
         )
 
     for key, value in _conta.model_dump(exclude_unset=True).items():
@@ -96,7 +96,7 @@ def put_conta(
     except IntegrityError:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail='Username ou Email ja existe',
+            detail='conta já consta no MADR',
         )
 
 

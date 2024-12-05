@@ -1,19 +1,21 @@
 from http import HTTPStatus
 
 from tcc_madr.schemas.schema_livro import LivroPublic
-from tcc_madr.utils import sanitize_input
 from tests.conftest import LivroFactory
 
 
 def test_livro_post_titulo_conflit(session, client, token):
-    _titulo = 'teste'
-    session.bulk_save_objects(LivroFactory.create_batch(1, titulo=_titulo))
+    _livro = LivroFactory()
+    session.add(_livro)
+    session.commit()
+    session.refresh(_livro)
     response = client.post(
         '/livro',
         headers={'Authorization': f'Bearer {token}'},
-        json={'titulo': _titulo, 'ano': 1234, 'romancista_id': 1},
+        json={'titulo': _livro.titulo, 'ano': 1234, 'romancista_id': 1},
     )
     assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {'detail': 'livro já consta no MADR'}
 
 
 def test_livro_post(session, client, token):
@@ -42,7 +44,7 @@ def test_livro_delete_not_found(client, token):
         '/livro/369', headers={'Authorization': f'Bearer {token}'}
     )
     assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'Livro nao encontrado.'}
+    assert response.json() == {'detail': 'Livro não consta no MADR'}
 
 
 def test_livro_delete(session, client, token):
@@ -67,7 +69,7 @@ def test_livro_patch_not_found(client, token):
         json={'titulo': 'teste', 'ano': 2000, 'romancista_id': 1},
     )
     assert rs.status_code == HTTPStatus.NOT_FOUND
-    assert rs.json() == {'detail': 'Livro nao encontrado.'}
+    assert rs.json() == {'detail': 'Livro não consta no MADR'}
 
 
 def test_livro_patch_titulo_conflit(session, client, token):
@@ -82,11 +84,11 @@ def test_livro_patch_titulo_conflit(session, client, token):
         },
     )
     assert response.status_code == HTTPStatus.CONFLICT
-    assert response.json() == {'detail': 'Titulo repetido.'}
+    assert response.json() == {'detail': 'livro já consta no MADR'}
 
 
 def test_livro_patch(session, client, token):
-    _livro = LivroFactory(titulo='C_afé da manhã dos campeões')
+    _livro = LivroFactory()
     session.add(_livro)
     session.commit()
     session.refresh(_livro)
@@ -94,10 +96,11 @@ def test_livro_patch(session, client, token):
     rs = client.patch(
         f'/livro/{_livro.id}',
         headers={'Authorization': f'Bearer {token}'},
-        json={'ano': 1974},
+        json={'ano': 1974, 'titulo': 'C_afé  da manhã dos campeões'},
     )
     assert rs.status_code == HTTPStatus.CREATED
     assert rs.json() == {
+        'id': _livro.id,
         'ano': 1974,
         'titulo': 'café da manhã dos campeões',
         'romancista_id': 1,
@@ -111,12 +114,11 @@ def test_livro_get_not_found(client, token):
     )
 
     assert rs.status_code == HTTPStatus.NOT_FOUND
-    assert rs.json() == {'detail': 'Livro nao encontrado.'}
+    assert rs.json() == {'detail': 'Livro não consta no MADR'}
 
 
 def test_livro_get(session, client, token):
     _livro = LivroFactory(ano=1974, titulo='cA_fé da manhã dos campeões')
-    _livro.titulo = sanitize_input(_livro.titulo)
     session.add(_livro)
     session.commit()
 

@@ -26,7 +26,8 @@ def login_for_access_token(
 
     if not _conta or not verify_password(form_data.password, _conta.senha):
         raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail='Email ou senha errado'
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='Email ou senha incorretos',
         )
     access_token = create_access_token(data={'sub': _conta.email})
     return {'access_token': access_token, 'token_type': 'Bearer'}

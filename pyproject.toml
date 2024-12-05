@@ -34,7 +34,7 @@ extend-exclude = ['migrations', './tests/utils']
 [tool.ruff.lint]
 preview = true
 select = ['I', 'F', 'E', 'W', 'PL', 'PT']
-ignore = ["E117", "PLR0913", "PLR0917"]
+ignore = ["E117", "PLR0913", "PLR0917",]
 
 [tool.ruff.format]
 preview = true

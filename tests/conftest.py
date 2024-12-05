@@ -6,8 +6,9 @@ from sqlalchemy.orm import Session
 
 from tcc_madr.app import app
 from tcc_madr.conn_database import get_session
-from tcc_madr.models import Conta, Livro, table_registry
+from tcc_madr.models import Conta, Livro, Romancistas, table_registry
 from tcc_madr.security import get_password_hash
+from tcc_madr.utils import sanitize_input, sanitize_input_up
 
 
 class ContaFactory(factory.Factory):
@@ -23,9 +24,26 @@ class LivroFactory(factory.Factory):
     class Meta:
         model = Livro
 
+    # sanitize_input
     titulo = factory.Sequence(lambda n: f'teste{n}')
     ano = factory.Sequence(lambda n: 2000 + n)
     romancista_id = 1
+
+    @classmethod
+    def _after_postgeneration(cls, instance, create, **kwargs):
+        instance.titulo = sanitize_input(instance.titulo)
+
+
+class RomancistasFactory(factory.Factory):
+    class Meta:
+        model = Romancistas
+
+    # sanitize_input_up
+    nome = factory.Sequence(lambda n: f'Teste{n}')
+
+    @classmethod
+    def _after_postgeneration(cls, instance, create, **kwargs):
+        instance.nome = sanitize_input_up(instance.nome)
 
 
 @pytest.fixture
@@ -56,6 +74,7 @@ def session():
     table_registry.metadata.drop_all(engine)
     ContaFactory.reset_sequence(1)
     LivroFactory.reset_sequence(1)
+    RomancistasFactory.reset_sequence(1)
 
 
 @pytest.fixture

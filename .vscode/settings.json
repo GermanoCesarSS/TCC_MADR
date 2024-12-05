@@ -1,4 +1,5 @@
 {
         "workbench.colorTheme": "Python Dark Theme",
         "editor.fontSize": 22,
+        "editor.tabSize": 4,
 }

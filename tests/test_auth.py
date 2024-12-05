@@ -44,7 +44,7 @@ def test_token_invalid_password(client, conta):
     )
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert response.json() == {'detail': 'Email ou senha errado'}
+    assert response.json() == {'detail': 'Email ou senha incorretos'}
 
 
 def test_token_invalid_email(client, conta):
@@ -54,7 +54,7 @@ def test_token_invalid_email(client, conta):
     )
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert response.json() == {'detail': 'Email ou senha errado'}
+    assert response.json() == {'detail': 'Email ou senha incorretos'}
 
 
 def test_refresh_token(client, token):

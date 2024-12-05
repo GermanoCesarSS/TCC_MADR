@@ -36,7 +36,7 @@ def test_post_conta_email_conflict(client, conta):
         },
     )
     assert response.status_code == HTTPStatus.CONFLICT
-    assert conta.email == 'teste1@teste.com'
+    assert response.json() == {'detail': 'conta já consta no MADR'}
 
 
 def test_post_conta_username_conflict(client, conta):
@@ -49,7 +49,7 @@ def test_post_conta_username_conflict(client, conta):
         },
     )
     assert response.status_code == HTTPStatus.CONFLICT
-    assert conta.username == 'teste1'
+    assert response.json() == {'detail': 'conta já consta no MADR'}
 
 
 # conta get
@@ -116,7 +116,7 @@ def test_put_conta_fornidden(client, other_conta, token):
     )
 
     assert response.status_code == HTTPStatus.FORBIDDEN
-    assert response.json() == {'detail': 'Sem permisao para esse usuario'}
+    assert response.json() == {'detail': 'Não autorizado'}
 
 
 def test_put_conta_username_conflict(client, conta, other_conta, token):
@@ -131,7 +131,7 @@ def test_put_conta_username_conflict(client, conta, other_conta, token):
     )
 
     assert response.status_code == HTTPStatus.CONFLICT
-    assert response.json() == {'detail': 'Username ou Email ja existe'}
+    assert response.json() == {'detail': 'conta já consta no MADR'}
 
 
 # conta delete

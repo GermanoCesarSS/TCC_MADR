@@ -29,7 +29,7 @@ def livro_post(
     if db_livro:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail='Esse titulo ja existe!',
+            detail='livro já consta no MADR',
         )
 
     db_livro = Livro(
@@ -56,7 +56,7 @@ def livro_delete(
     db_livro = session.scalar(select(Livro).where(Livro.id == livro_id))
     if not db_livro:
         raise HTTPException(
-            HTTPStatus.NOT_FOUND, detail='Livro nao encontrado.'
+            HTTPStatus.NOT_FOUND, detail='Livro não consta no MADR'
         )
 
     session.delete(db_livro)
@@ -66,7 +66,7 @@ def livro_delete(
 
 
 @router.patch(
-    '/{livro_id}', status_code=HTTPStatus.CREATED, response_model=LivroSchema
+    '/{livro_id}', status_code=HTTPStatus.CREATED, response_model=LivroPublic
 )
 def livro_path(
     livro_id: int,
@@ -78,15 +78,18 @@ def livro_path(
 
     if not db_livro:
         raise HTTPException(
-            HTTPStatus.NOT_FOUND, detail='Livro nao encontrado.'
+            HTTPStatus.NOT_FOUND, detail='Livro não consta no MADR'
         )
 
     if session.scalar(select(Livro).where(Livro.titulo == new_livro.titulo)):
-        raise HTTPException(HTTPStatus.CONFLICT, detail='Titulo repetido.')
+        raise HTTPException(
+            HTTPStatus.CONFLICT, detail='livro já consta no MADR'
+        )
 
     for key, value in new_livro.model_dump(exclude_unset=True).items():
         setattr(db_livro, key, value)
 
+    # db_livro.titulo = sanitize_input(db_livro.titulo)
     session.add(db_livro)
     session.commit()
     session.refresh(db_livro)
@@ -103,7 +106,7 @@ def livro_get(
     db_livro = session.scalar(select(Livro).where(Livro.id == livro_id))
     if not db_livro:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Livro nao encontrado.'
+            status_code=HTTPStatus.NOT_FOUND, detail='Livro não consta no MADR'
         )
     return db_livro
 

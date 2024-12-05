@@ -29,3 +29,7 @@ class LivroUpdate(BaseModel):
     titulo: str | None = None
     ano: int | None = None
     romancista_id: int | None = None
+
+    @field_validator('titulo')
+    def sanitize_username(cls, text: str):
+        return sanitize_input(text)
