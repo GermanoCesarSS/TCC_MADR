@@ -1,10 +1,10 @@
 from http import HTTPStatus
 
 from tcc_madr.schemas.schema_livro import LivroPublic
-from tests.conftest import LivroFactory
+from tests.conftest import LivroFactory, RomancistasFactory
 
 
-def test_livro_post_titulo_conflit(session, client, token):
+def test_livro_post_titulo_conflit(romancista, session, client, token):
     _livro = LivroFactory()
     session.add(_livro)
     session.commit()
@@ -18,7 +18,7 @@ def test_livro_post_titulo_conflit(session, client, token):
     assert response.json() == {'detail': 'livro já consta no MADR'}
 
 
-def test_livro_post(session, client, token):
+def test_livro_post(romancista, session, client, token):
     session.bulk_save_objects(LivroFactory.create_batch(2))
     response = client.post(
         '/livro',
@@ -26,7 +26,7 @@ def test_livro_post(session, client, token):
         json={
             'ano': 1973,
             'titulo': 'Café Da Manhã Dos Campeões',
-            'romancista_id': 42,
+            'romancista_id': 1,
         },
     )
 
@@ -35,7 +35,7 @@ def test_livro_post(session, client, token):
         'id': 3,
         'ano': 1973,
         'titulo': 'café da manhã dos campeões',
-        'romancista_id': 42,
+        'romancista_id': 1,
     }
 
 
@@ -47,7 +47,7 @@ def test_livro_delete_not_found(client, token):
     assert response.json() == {'detail': 'Livro não consta no MADR'}
 
 
-def test_livro_delete(session, client, token):
+def test_livro_delete(romancista, session, client, token):
     _livro = LivroFactory()
 
     session.add(_livro)
@@ -72,7 +72,7 @@ def test_livro_patch_not_found(client, token):
     assert rs.json() == {'detail': 'Livro não consta no MADR'}
 
 
-def test_livro_patch_titulo_conflit(session, client, token):
+def test_livro_patch_titulo_conflit(romancista, session, client, token):
     session.bulk_save_objects(LivroFactory.create_batch(2))
     response = client.patch(
         '/livro/1',
@@ -87,7 +87,7 @@ def test_livro_patch_titulo_conflit(session, client, token):
     assert response.json() == {'detail': 'livro já consta no MADR'}
 
 
-def test_livro_patch(session, client, token):
+def test_livro_patch(romancista, session, client, token):
     _livro = LivroFactory()
     session.add(_livro)
     session.commit()
@@ -117,7 +117,7 @@ def test_livro_get_not_found(client, token):
     assert rs.json() == {'detail': 'Livro não consta no MADR'}
 
 
-def test_livro_get(session, client, token):
+def test_livro_get(romancista, session, client, token):
     _livro = LivroFactory(ano=1974, titulo='cA_fé da manhã dos campeões')
     session.add(_livro)
     session.commit()
@@ -142,7 +142,7 @@ def test_livro_get_all_null(client, token):
     assert rs.json() == {'livros': []}
 
 
-def test_livro_get_all(session, client, token):
+def test_livro_get_all(romancista, session, client, token):
     _livro = LivroFactory()
     session.add(_livro)
     session.commit()
@@ -154,7 +154,7 @@ def test_livro_get_all(session, client, token):
     assert rs.json() == {'livros': [user_schema]}
 
 
-def test_livro_get_filter_ano(session, client, token):
+def test_livro_get_filter_ano(romancista, session, client, token):
     expected_livro = 2
     _ano: int = 1900
 
@@ -172,7 +172,7 @@ def test_livro_get_filter_ano(session, client, token):
     assert len(response.json()['livros']) == expected_livro
 
 
-def test_livro_get_filter_titulo(session, client, token):
+def test_livro_get_filter_titulo(romancista, session, client, token):
     expected_livro = 2
     _titulo = 'teste'
 
@@ -190,13 +190,18 @@ def test_livro_get_filter_titulo(session, client, token):
     assert len(response.json()['livros']) == expected_livro
 
 
-def test_livro_get_filter_romancista_id(session, client, token):
+def test_livro_get_filter_romancista_id(romancista, session, client, token):
     expected_livro = 2
-    _romancista_id = 10
+    _romancista_id = 1
 
     session.bulk_save_objects(
         LivroFactory.create_batch(2, romancista_id=_romancista_id)
     )
+    _romancista = RomancistasFactory()
+
+    session.add(_romancista)
+    session.commit()
+
     _livro = LivroFactory(romancista_id=2)
     session.add(_livro)
     session.commit()
@@ -210,7 +215,7 @@ def test_livro_get_filter_romancista_id(session, client, token):
     assert len(response.json()['livros']) == expected_livro
 
 
-def test_livro_get_filter(session, client, token):
+def test_livro_get_filter(romancista, session, client, token):
     expected_livro = 1
 
     session.bulk_save_objects(
@@ -218,7 +223,7 @@ def test_livro_get_filter(session, client, token):
             4,
         )
     )
-    _livro = LivroFactory(titulo='café', ano=1900, romancista_id=10)
+    _livro = LivroFactory(titulo='café', ano=1900, romancista_id=1)
     session.add(_livro)
     session.commit()
     session.refresh(_livro)
