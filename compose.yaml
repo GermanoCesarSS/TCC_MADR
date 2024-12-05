@@ -1,0 +1,25 @@
+services:
+  tcc_madr_1_database:
+    image: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: app_user1
+      POSTGRES_DB: app_db1
+      POSTGRES_PASSWORD: app_password1
+    ports:
+      - "5435:5432"
+
+  tcc_madr_1_app:
+    image: tcc_madr_1_app
+    entrypoint: ./entrypoint.sh
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - tcc_madr_1_database
+    environment:
+      DATABASE_URL: postgresql+psycopg://app_user1:app_password1@tcc_madr_1_database:5432/app_db1
+
+volumes:
+  pgdata:
