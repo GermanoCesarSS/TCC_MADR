@@ -39,3 +39,15 @@ class Livro:
     autoria: Mapped[Romancistas] = relationship(
         init=False, back_populates='livros'
     )
+
+
+@table_registry.mapped_as_dataclass
+class RomancistasLivrosView:
+    __tablename__ = 'romancistas_livros'
+    __table_args__ = {'info': {'is_view': True}}
+
+    romancista_id: Mapped[int] = mapped_column(primary_key=True)
+    romancista_nome: Mapped[str]
+    livro_id: Mapped[int]
+    livro_titulo: Mapped[str]
+    livro_ano: Mapped[int]
